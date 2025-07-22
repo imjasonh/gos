@@ -41,6 +41,8 @@ chmod +x script.go
 ./script.go [args...]
 ```
 
+**Note:** Adding a shebang makes the file invalid Go syntax and may break some tools like `gofmt` and IDE formatting. The shebang is optional - you can always use `gos run script.go` instead.
+
 ## Dependency Format
 
 Dependencies are declared in a special comment block at the top of your Go file:
