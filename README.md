@@ -1,6 +1,6 @@
 # gos - Go Script Runner
 
-A tool that enables running Go files as scripts with inline dependency declarations, inspired by Python's inline script dependencies ([PEP 723](https://peps.python.org/pep-0723/)), uv's `run` command, and this [Hacker News discussion](https://news.ycombinator.com/item?id=44641746).
+A tool that enables running Go files as scripts with inline dependency declarations, inspired by Python's inline script dependencies ([PEP 723](https://peps.python.org/pep-0723/)), uv's [`run` command](https://docs.astral.sh/uv/guides/scripts/), and this [Hacker News discussion](https://news.ycombinator.com/item?id=44641746).
 
 ![Demo](demo.gif)
 
