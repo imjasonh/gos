@@ -2,6 +2,8 @@
 
 A tool that enables running Go files as scripts with inline dependency declarations, inspired by Python's inline script dependencies ([PEP 723](https://peps.python.org/pep-0723/)), uv's `run` command, and this [Hacker News discussion](https://news.ycombinator.com/item?id=44641746).
 
+![Demo](demo.gif)
+
 ## Motivation
 
 Go is a compiled language that typically requires a full project structure with `go.mod` files for dependency management. This tool allows you to write self-contained Go scripts with dependencies declared inline, making Go more suitable for quick scripts and automation tasks.
