@@ -21,3 +21,9 @@ Sleep 2s
 Type "./examples/hello.go foo bar"
 Enter
 Sleep 3s
+
+Type "# Run tests in the same file"
+Enter
+Type "gos test examples/hello.go"
+Enter
+Sleep 3s
