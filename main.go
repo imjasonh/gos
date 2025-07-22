@@ -18,19 +18,26 @@ type scriptMetadata struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: gos run <script.go> [args...]\n")
+		fmt.Fprintf(os.Stderr, "Usage: gos <command> <script.go> [args...]\n")
+		fmt.Fprintf(os.Stderr, "Commands:\n")
+		fmt.Fprintf(os.Stderr, "  run   Run a Go script\n")
+		fmt.Fprintf(os.Stderr, "  test  Run tests in a Go script\n")
 		os.Exit(1)
 	}
 
-	if os.Args[1] != "run" {
-		fmt.Fprintf(os.Stderr, "Error: only 'run' command is supported\n")
-		fmt.Fprintf(os.Stderr, "Usage: gos run <script.go> [args...]\n")
+	command := os.Args[1]
+	if command != "run" && command != "test" {
+		fmt.Fprintf(os.Stderr, "Error: unknown command '%s'\n", command)
+		fmt.Fprintf(os.Stderr, "Usage: gos <command> <script.go> [args...]\n")
+		fmt.Fprintf(os.Stderr, "Commands:\n")
+		fmt.Fprintf(os.Stderr, "  run   Run a Go script\n")
+		fmt.Fprintf(os.Stderr, "  test  Run tests in a Go script\n")
 		os.Exit(1)
 	}
 
 	if len(os.Args) < 3 {
 		fmt.Fprintf(os.Stderr, "Error: script file required\n")
-		fmt.Fprintf(os.Stderr, "Usage: gos run <script.go> [args...]\n")
+		fmt.Fprintf(os.Stderr, "Usage: gos %s <script.go> [args...]\n", command)
 		os.Exit(1)
 	}
 
@@ -57,6 +64,11 @@ func main() {
 
 	// Copy script to temp directory
 	scriptName := filepath.Base(scriptPath)
+	// For test command, ensure the file ends with _test.go
+	if command == "test" && !strings.HasSuffix(scriptName, "_test.go") {
+		base := strings.TrimSuffix(scriptName, ".go")
+		scriptName = base + "_test.go"
+	}
 	tempScriptPath := filepath.Join(tempDir, scriptName)
 	if err := os.WriteFile(tempScriptPath, scriptContent, 0644); err != nil {
 		log.Fatalf("Failed to write script: %v", err)
@@ -67,9 +79,9 @@ func main() {
 		log.Fatalf("Failed to run go mod tidy: %v", err)
 	}
 
-	// Build and run the script
-	if err := buildAndRun(tempDir, scriptName, scriptArgs); err != nil {
-		log.Fatalf("Failed to build and run script: %v", err)
+	// Build and run/test the script
+	if err := buildAndRun(tempDir, scriptName, command, scriptArgs); err != nil {
+		log.Fatalf("Failed to %s script: %v", command, err)
 	}
 }
 
@@ -174,8 +186,21 @@ func runGoModTidy(dir string) error {
 	return cmd.Run()
 }
 
-func buildAndRun(dir, scriptName string, args []string) error {
-	// Build the script
+func buildAndRun(dir, scriptName, command string, args []string) error {
+	if command == "test" {
+		// Run go test on the directory (not the specific file)
+		testArgs := []string{"test", "-v", "."}
+		testArgs = append(testArgs, args...)
+		testCmd := exec.Command("go", testArgs...)
+		testCmd.Dir = dir
+		testCmd.Stdout = os.Stdout
+		testCmd.Stderr = os.Stderr
+		testCmd.Stdin = os.Stdin
+
+		return testCmd.Run()
+	}
+
+	// Build the script for run command
 	binaryName := strings.TrimSuffix(scriptName, ".go")
 	buildCmd := exec.Command("go", "build", "-o", binaryName, scriptName)
 	buildCmd.Dir = dir

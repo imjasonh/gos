@@ -15,6 +15,7 @@ Go is a compiled language that typically requires a full project structure with 
 - Automatic dependency resolution via `go mod tidy`
 - Shebang support for executable scripts
 - Temporary build environment (doesn't pollute your workspace)
+- Support for both running scripts and testing them
 
 ## Installation
 
@@ -27,7 +28,11 @@ go install github.com/imjasonh/gos
 ### Basic Usage
 
 ```bash
+# Run a Go script
 gos run script.go [args...]
+
+# Run tests in a Go script
+gos test script.go [args...]
 ```
 
 ### With Shebang
@@ -35,6 +40,11 @@ gos run script.go [args...]
 Add this to the top of your Go file:
 ```go
 #!/usr/bin/env gos run
+```
+
+For test files:
+```go
+#!/usr/bin/env gos test
 ```
 
 Then make it executable:
@@ -96,13 +106,47 @@ func main() {
 }
 ```
 
+### Combined Script and Tests
+
+You can have both a runnable script and tests in the same file:
+
+```go
+#!/usr/bin/env gos run
+// /// script
+// dependencies = [
+//     "github.com/stretchr/testify@v1.10.0",
+// ]
+// ///
+
+package main
+
+import (
+    "fmt"
+    "testing"
+    "github.com/stretchr/testify/assert"
+)
+
+func main() {
+    fmt.Println("Running main function")
+}
+
+func TestSomething(t *testing.T) {
+    assert.Equal(t, 1, 1)
+}
+```
+
+Then:
+- `gos run script.go` or `./script.go` - runs the main function
+- `gos test script.go` - runs the tests (automatically renames to `*_test.go`)
+
 ## How It Works
 
 1. `gos` parses the special comment block to extract dependencies
 2. Creates a temporary directory with a generated `go.mod`
 3. Runs `go mod tidy` to fetch dependencies
-4. Builds and executes your script
-5. Cleans up the temporary directory
+4. For `run`: builds and executes your script
+5. For `test`: renames to `*_test.go` if needed and runs `go test`
+6. Cleans up the temporary directory
 
 ## Comparison to Other Tools
 
@@ -113,10 +157,10 @@ func main() {
 
 ## Limitations
 
-- Only supports the `run` command currently
 - Dependencies must be explicitly versioned or use `latest`
 - No caching of built binaries (rebuilds each time)
 - Requires `go` to be installed and available in PATH
+- Test files must contain valid test functions for `gos test` to work
 
 ## Future Improvements
 
