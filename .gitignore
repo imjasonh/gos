@@ -1,0 +1,30 @@
+# Binaries
+gos
+*.exe
+
+# Test files
+test.bin
+*.download
+
+# Go build artifacts
+*.o
+*.a
+*.so
+
+# Dependency directories
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+*.out
+coverage.html
