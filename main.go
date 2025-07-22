@@ -58,7 +58,7 @@ func main() {
 	defer os.RemoveAll(tempDir)
 
 	// Generate go.mod
-	if err := generateGoMod(tempDir, metadata); err != nil {
+	if err := generateGoMod(tempDir, scriptPath, metadata); err != nil {
 		log.Fatalf("Failed to generate go.mod: %v", err)
 	}
 
@@ -159,8 +159,19 @@ func parseMetadata(lines []string, metadata *scriptMetadata) error {
 	return nil
 }
 
-func generateGoMod(dir string, metadata *scriptMetadata) error {
-	content := "module goscript\n\ngo 1.21\n"
+func generateGoMod(dir string, scriptPath string, metadata *scriptMetadata) error {
+	// Use the script filename (without extension) as the module name
+	scriptName := filepath.Base(scriptPath)
+	moduleName := strings.TrimSuffix(scriptName, filepath.Ext(scriptName))
+	// Ensure module name is valid (replace any non-alphanumeric chars with underscore)
+	moduleName = strings.Map(func(r rune) rune {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_' {
+			return r
+		}
+		return '_'
+	}, moduleName)
+
+	content := fmt.Sprintf("module %s\n\ngo 1.21\n", moduleName)
 
 	if len(metadata.Dependencies) > 0 {
 		content += "\nrequire (\n"
